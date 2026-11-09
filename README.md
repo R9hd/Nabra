@@ -5,7 +5,7 @@ Flutter + Firebase app for the NABRA seizure-protection collar (hackathon protot
 ## Try it
 
 - **Android:** download `NABRA.apk` from the latest [Release](../../releases/latest) and open it on your phone.
-- **iPhone / laptop:** open the web version: `https://r9hd.github.io/Nabra/`
+- **iPhone / laptop:** open the web version: [https://r9hd.github.io/Nabra/](https://r9hd.github.io/Nabra/)
   (lock-screen alerts, background alarm sound and automatic calls work only in the Android app).
 - Step-by-step test instructions are in [RELEASE_NOTES.md](RELEASE_NOTES.md). Screenshots of every page are in
   [demo/screenshots](demo/screenshots).
