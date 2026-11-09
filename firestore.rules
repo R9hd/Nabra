@@ -1,0 +1,68 @@
+rules_version = '2';
+
+// NABRA security rules.
+// A patient's data is readable only by the patient and their linked caregivers.
+// Deploy: firebase deploy --only firestore:rules
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function me() { return request.auth.uid; }
+
+    // True when the only change to `field` is adding or removing the caller's own uid.
+    function onlyTogglesSelf(field) {
+      let before = resource.data.get(field, []).toSet();
+      let after = request.resource.data.get(field, []).toSet();
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([field])
+        && after.difference(before).union(before.difference(after)).hasOnly([me()]);
+    }
+
+    function isLinkedCaregiverOf(patientUid) {
+      return me() in get(/databases/$(database)/documents/users/$(patientUid)).data.get('linkedCaregiverIds', []);
+    }
+
+    match /users/{uid} {
+      allow read: if signedIn() && (
+        uid == me()
+        || me() in resource.data.get('linkedCaregiverIds', [])   // caregiver reading their patient
+        || me() in resource.data.get('linkedPatientIds', [])     // patient reading their caregiver
+      );
+      allow create: if signedIn() && uid == me();
+      allow update: if signedIn() && (
+        uid == me()
+        || onlyTogglesSelf('linkedCaregiverIds')   // caregiver links / unlinks themselves to a patient
+        || onlyTogglesSelf('linkedPatientIds')     // patient unlinks a caregiver
+      );
+      allow delete: if signedIn() && uid == me();
+    }
+
+    // Short codes a patient shares with caregivers. Readable by code only (no listing).
+    match /pairingCodes/{code} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create, update: if signedIn() && request.resource.data.patientUid == me();
+      allow delete: if signedIn() && resource.data.patientUid == me();
+    }
+
+    // Live collar state, keyed by patient uid.
+    match /devices/{patientUid} {
+      allow read: if signedIn() && (patientUid == me() || isLinkedCaregiverOf(patientUid));
+      allow write: if signedIn() && patientUid == me();
+    }
+
+    match /alerts/{alertId} {
+      allow read: if signedIn() && (
+        resource.data.patientUid == me() || me() in resource.data.caregiverIds
+      );
+      allow create: if signedIn() && request.resource.data.patientUid == me();
+      // Patient manages their alert; linked caregivers can respond / mark ended.
+      allow update: if signedIn() && (
+        resource.data.patientUid == me()
+        || (me() in resource.data.caregiverIds
+            && request.resource.data.patientUid == resource.data.patientUid
+            && request.resource.data.caregiverIds == resource.data.caregiverIds)
+      );
+      allow delete: if false;
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1042292482019",
+    "project_id": "nabradb-e874e",
+    "storage_bucket": "nabradb-e874e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1042292482019:android:7b4de38a988667e2cacad6",
+        "android_client_info": {
+          "package_name": "com.example.nabra"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3-wRA2EmbtrnO43_gFJQS4IduufKnTBU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
